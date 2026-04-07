@@ -6,9 +6,9 @@ import mlflow
 import mlflow.sklearn
 from pathlib import Path
 from datetime import datetime
-from src.data_loader import load_data, preprocess_data
-from src.evaluate import evaluate
-from src.model import train_model
+from data_loader import load_data, preprocess_data
+from evaluate import evaluate
+from model import train_model
 
 # Configurar logging (consola + archivo)
 logging.basicConfig(
@@ -24,8 +24,8 @@ logger=logging.getLogger("adult-income")
 run_name = f"run-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
 
 # MLflow config
-MLFLOW_URI = "http://localhost:5000"
-EXPERIMENT_NAME = "adult-income"
+MLFLOW_URI = "http://57.151.65.76:5000"
+EXPERIMENT_NAME = "dgil-adult-income"
 
 mlflow.set_tracking_uri(MLFLOW_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)
