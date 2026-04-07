@@ -10,7 +10,7 @@ from data_loader import load_data, preprocess_data
 from evaluate import evaluate
 from model import train_model
 
-# Configurar logging (consola + archivo)
+# Configurar logging (consola + archivo) a
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
