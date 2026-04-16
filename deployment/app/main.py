@@ -6,11 +6,28 @@ import logging
 from fastapi.responses import PlainTextResponse
 import joblib
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import tempfile
 import pandas as pd
 from pathlib import Path
 
 metrics = {"total_predictions": 0}
+
+
+def make_request_session(retries=3, backoff_factor=0.5, status_forcelist=(500, 502, 503, 504)):
+    session = requests.Session()
+    retry = Retry(
+        total=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_forcelist,
+        allowed_methods=frozenset(["GET", "POST"]),
+        raise_on_status=False,
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    return session
 
 model = None
 scaler = None
@@ -31,7 +48,8 @@ async def lifespan(app: FastAPI):
         
         # Download latest release from GitHub
         logger.info(f"Fetching latest release from {github_repo}...")
-        response = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest")
+        session = make_request_session()
+        response = session.get(f"https://api.github.com/repos/{github_repo}/releases/latest", timeout=(5, 30))
         response.raise_for_status()
         release = response.json()
         
@@ -48,29 +66,28 @@ async def lifespan(app: FastAPI):
         
         # Download and load model
         logger.info(f"Downloading model, scaler, and encoders...")
-        
-        model_data = requests.get(assets_to_download['model.pkl']).content
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as f:
-            f.write(model_data)
-            model_path = f.name
-            temp_files.append(model_path)
-        model = joblib.load(model_path)
+        session = make_request_session()
+
+        def download_and_load(asset_name: str):
+            url = assets_to_download[asset_name]
+            logger.info(f"Downloading {asset_name} from {url}")
+            response = session.get(url, timeout=(5, 30), stream=True)
+            response.raise_for_status()
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                path = f.name
+            temp_files.append(path)
+            return joblib.load(path)
+
+        model = download_and_load('model.pkl')
         logger.info("Model loaded successfully")
-        
-        scaler_data = requests.get(assets_to_download['scaler.pkl']).content
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as f:
-            f.write(scaler_data)
-            scaler_path = f.name
-            temp_files.append(scaler_path)
-        scaler = joblib.load(scaler_path)
+
+        scaler = download_and_load('scaler.pkl')
         logger.info("Scaler loaded successfully")
-        
-        encoders_data = requests.get(assets_to_download['encoders.pkl']).content
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as f:
-            f.write(encoders_data)
-            encoders_path = f.name
-            temp_files.append(encoders_path)
-        encoders = joblib.load(encoders_path)
+
+        encoders = download_and_load('encoders.pkl')
         logger.info("Encoders loaded successfully")
         
     except Exception as e:
