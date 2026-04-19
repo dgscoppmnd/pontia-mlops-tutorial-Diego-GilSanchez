@@ -247,4 +247,6 @@ Este proyecto es para fines educativos. Consulta la licencia del dataset Adult I
          predictions = model.predict(X_test)
          accuracy = accuracy_score(y_test, predictions)
          assert accuracy >= 0.80, f"Model accuracy below expected threshold: {accuracy:.2f}"
-      ```           
+      ```    
+      
+             
