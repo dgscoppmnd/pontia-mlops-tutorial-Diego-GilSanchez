@@ -1,5 +1,8 @@
 # PontIA MLOps Tutorial - Diego Gil Sanchez
 
+## Contributors:
+       - Germán Dario realpe : https://github.com/gedorz/pontia-mlops-tutorial_m4_german_realpe
+
 Este repositorio es un tutorial completo de MLOps (Machine Learning Operations) que demuestra el ciclo de vida de un modelo de machine learning, desde el entrenamiento hasta el despliegue en producción. El proyecto entrena un modelo de clasificación RandomForest para predecir si el ingreso anual de una persona supera los $50,000 basado en el dataset "Adult Income" del UCI Machine Learning Repository.
 
 ## Funcionalidad General
@@ -76,6 +79,21 @@ El proyecto implementa un pipeline de ML que incluye:
    cd pontia-mlops-tutorial-Diego-GilSanchez
    ```
 
+### Creación de un entorno virtual en Python 
+
+ 1.  **Entorno virtual en Python**: Se crea un entorno virtual de Python para la creación de la API y activalo
+    en powerShell/bash
+    denro del directorio ejecuta:
+
+   ```bash
+      # Windows
+      python -m venv .venv
+      .venv\Scripts\activate
+
+      # Linux/Mac
+      python -m venv .venv
+      source .venv/bin/activate
+   ```
 2. **Instala las dependencias**:
    ```bash
    pip install -r requirements.txt
@@ -179,3 +197,56 @@ Si deseas contribuir:
 ## Licencia
 
 Este proyecto es para fines educativos. Consulta la licencia del dataset Adult Income para uso comercial.
+
+
+## Notas: 
+   - En algunos casos en .github\workflows\deploy.yml 
+     no ejecuta render automaticamente para que ejecute el render automaticamente se debe agregar: 
+
+      ```
+      on:
+         push:
+            branches:
+               - main
+         workflow_dispatch:
+      ```
+
+      Y al final el orden debe ser:
+
+      ```
+      - name: Deploy to Render
+         env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         run: |
+               curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }
+      ```    
+
+   - Para la versión python 3.11 en \model_tests\test_model.py
+      El test debe usar la misma preparación de datos que el training, es decir:
+         load_data(...)
+         preprocess_data(...)
+         model.predict(X_test)
+
+      Este no puede predecir con el raw CSV sin codificar y escalar
+      Debido a que predictions = model.predict(X_test) falla
+      y no puede predecir sobre datos no procesados  ' Private', ' Private', ' Self-emp-inc' 
+      y mostrará el error: 
+            
+            ValueError: could not convert string to float: ' Private'
+
+      cambia la función test_model_accuracy por:
+      
+      ```  
+      from src.data_loader import load_data, preprocess_data
+
+      def test_model_accuracy():
+         model = joblib.load('models/model.pkl')
+         train_df, test_df = load_data('data/raw/adult.data', 'data/raw/adult.test')
+         X_train, X_test, y_train, y_test, scaler, encoders = preprocess_data(train_df, test_df)
+
+         predictions = model.predict(X_test)
+         accuracy = accuracy_score(y_test, predictions)
+         assert accuracy >= 0.80, f"Model accuracy below expected threshold: {accuracy:.2f}"
+      ```    
+      
+             
