@@ -1,4 +1,4 @@
-# PontIA MLOps Tutorial - Diego Gil Sanchez
+# PontIA MLOps Tutorial - Diego Gil Sanchez, Javier Ortega Álvarez de Lara
 
 Este repositorio es un tutorial completo de MLOps (Machine Learning Operations) que demuestra el ciclo de vida de un modelo de machine learning, desde el entrenamiento hasta el despliegue en producción. El proyecto entrena un modelo de clasificación RandomForest para predecir si el ingreso anual de una persona supera los $50,000 basado en el dataset "Adult Income" del UCI Machine Learning Repository.
 
