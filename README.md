@@ -11,12 +11,31 @@ El proyecto implementa un pipeline de ML que incluye:
 - **Registro y versionado**: Uso de MLflow para tracking y registro de modelos.
 - **Despliegue**: API REST con FastAPI desplegada en Render, que descarga automáticamente la última versión del modelo desde GitHub Releases.
 
+## Flujo CI/CD
+
+El proyecto utiliza tres workflows de GitHub Actions para cubrir las etapas principales del ciclo DevOps/MLOps:
+
+### Integration
+
+El workflow `integration.yml` valida la integración continua del proyecto. Instala las dependencias definidas en `requirements.txt` y ejecuta los tests necesarios para comprobar que los cambios no rompen la funcionalidad existente antes de integrarse en `main`.
+
+### Build
+
+El workflow `build.yml` se encarga de construir el artefacto del modelo. Descarga los datos necesarios, entrena el modelo, ejecuta tests de integración y rendimiento, y genera o registra el modelo para su posterior despliegue.
+
+### Deploy
+
+El workflow `deploy.yml` ejecuta el despliegue de la API en Render mediante el deploy hook configurado como secreto en GitHub. Esta etapa permite publicar el servicio una vez que el modelo y la aplicación han sido validados.
+
+
 ## Estructura de Directorios
 
 ```
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          # Workflow de GitHub Actions para despliegue en Render
+.github/
+└── workflows/
+    ├── integration.yml         # Workflow de integración continua: instala dependencias y ejecuta tests
+    ├── build.yml               # Workflow de build: entrena, valida y registra/genera el modelo
+    └── deploy.yml              # Workflow de despliegue en Render
 ├── data/
 │   ├── raw/                    # Datos crudos del dataset Adult Income
 │   └── deployment/
