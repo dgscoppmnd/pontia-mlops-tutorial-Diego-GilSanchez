@@ -1,4 +1,4 @@
-# PontIA MLOps Tutorial - Diego Gil Sanchez
+# PontIA MLOps Tutorial - Diego Gil Sanchez, Javier Ortega Álvarez de Lara, German Dario, Said Elkhababi
 
 ## Contributors:
        - Germán Dario realpe : https://github.com/gedorz/pontia-mlops-tutorial_m4_german_realpe
