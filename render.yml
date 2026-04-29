@@ -12,5 +12,5 @@ services:
       - key: PYTHON_VERSION
         value: 3.10.0
       - key: GITHUB_REPO
-        value: JavierOrtegaAL/pontia-mlops-tutorial-Diego-GilSanchez
+        value: dgscoppmnd/pontia-mlops-tutorial-Diego-GilSanchez
 
