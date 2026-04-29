@@ -40,9 +40,29 @@ jobs:
           script: |
             const fs = require('fs');
             const results = fs.readFileSync('test-results/results.log', 'utf8');
-            const truncated = results.length > 65000 ? results.slice(0, 65000) + '\\n...TRUNCATED...' : results;
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            const truncated = results.length > 65000 ? results.slice(0, 65000) + '\n...TRUNCATED...' : results;
+            
+            // Obtener el número del PR según el evento
+            let prNumber = null;
+            
+            if (github.event.pull_request) {
+              prNumber = github.event.pull_request.number;
+            } else if (github.event.issue) {
+              prNumber = github.event.issue.number;
+            } else if (github.event.workflow_run && github.event.workflow_run.pull_requests) {
+              prNumber = github.event.workflow_run.pull_requests[0]?.number;
+            }
+            
+            if (!prNumber) {
+              console.log('No PR/Issue number found in this event. Event type:', context.eventName);
+              console.log('Available payload keys:', Object.keys(github.event));
+              return;
+            }
+            
+            console.log(`Posting comment to PR/Issue #${prNumber}`);
+            
+            await github.rest.issues.createComment({
+              issue_number: prNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `### 🧪 Test Results with Coverage\n\n\`\`\`\n${truncated}\n\`\`\``
